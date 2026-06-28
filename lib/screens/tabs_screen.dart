@@ -16,11 +16,31 @@ class _TabsScreenState extends State<TabsScreen> {
   final List<Meal> _favoriteMeals = [];
   void _toggleMealFavoriteStatus(Meal meal) {
     final isExisting = _favoriteMeals.contains(meal);
-    if (isExisting) {
-      _favoriteMeals.remove(meal);
-    } else {
-      _favoriteMeals.add(meal);
+
+    setState(() {
+      if (isExisting) {
+        _favoriteMeals.remove(meal);
+      } else {
+        _favoriteMeals.add(meal);
+      }
+    });
+
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    if (messenger == null) {
+      return;
     }
+
+    messenger.showSnackBar(
+      SnackBar(
+        duration: const Duration(seconds: 2),
+        
+        content: Text(
+          isExisting
+              ? '${meal.title} has been removed from favorites'
+              : '${meal.title} has been added to favorites',
+        ),
+      ),
+    );
   }
 
   void _selectPage(int index) {
