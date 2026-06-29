@@ -1,25 +1,76 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meals_app/models/meal.dart';
+import 'package:meals_app/provider/favorites_provider.dart';
 
-class MealDetailScreen extends StatelessWidget {
+class MealDetailScreen extends ConsumerWidget {
   const MealDetailScreen({
     super.key,
     required this.meal,
-    required this.onToggleFavorite,
   });
   final Meal meal;
-  final void Function(Meal meal) onToggleFavorite;
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final favoriteMeals = ref.watch(favoritesMealsProvider);
+    final isFavorite = favoriteMeals.contains(meal);
     return Scaffold(
       appBar: AppBar(
         title: Text(meal.title),
         actions: [
           IconButton(
             onPressed: () {
-              onToggleFavorite(meal);
+              final isAdded = ref
+                  .read(favoritesMealsProvider.notifier)
+                  .toggleMealFavoriteStatus(meal);
+              ScaffoldMessenger.of(context).clearSnackBars();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  // showCloseIcon: true,
+                  closeIconColor: Colors.white,
+                  dismissDirection: DismissDirection.up,
+                  clipBehavior: Clip.hardEdge,
+                  duration: const Duration(seconds: 2),
+                  content: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: const BoxDecoration(
+                          color: Colors.white24,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          isAdded ? Icons.check : Icons.clear,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          isAdded
+                              ? '${meal.title} is added to the favorites'
+                              : '${meal.title} is removed from the favorites',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodyMedium!
+                              .copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  backgroundColor: isAdded ? Colors.green : Colors.red,
+                  behavior: SnackBarBehavior.floating,
+                  margin: const EdgeInsets.all(16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 5,
+                ),
+              );
             },
-            icon: const Icon(Icons.star),
+            icon: Icon(isFavorite ? Icons.star : Icons.star_border),
           ),
         ],
       ),
